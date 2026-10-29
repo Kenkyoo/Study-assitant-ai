@@ -1,0 +1,39 @@
+// use prisma-8
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  createdAt     DateTime       @default(now())
+  studySessions StudySession[]
+}
+
+model StudySession {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  sourceType String   // 'text', 'pdf', 'youtube_url'
+  summary    Json     // Guardará el resumen estructurado generado por Gemini
+  studyRoute Json?    // Guardará la ruta o pasos de estudio sugeridos
+  quizzes    Quiz[]
+  createdAt  DateTime @default(now())
+}
+
+model Quiz {
+  id             String       @id @default(uuid())
+  studySessionId String
+  studySession   StudySession @relation(fields: [studySessionId], references: [id], onDelete: Cascade)
+  questions      Json         // Array de preguntas: [{ question, options, correctAnswer }]
+  score          Int?         // Puntuación obtenida cuando el usuario responda el quiz
+  createdAt      DateTime     @default(now())
+}

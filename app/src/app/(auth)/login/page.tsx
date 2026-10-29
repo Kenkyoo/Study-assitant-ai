@@ -23,21 +23,11 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
         });
         if (error) throw error;
-
-        // Opcional: Si el registro es exitoso, aseguramos insertar al usuario en nuestra tabla de Prisma
-        if (data.user) {
-          await fetch('/api/user/sync', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: data.user.id, email: data.user.email }),
-          });
-        }
-
         alert('¡Registro exitoso! Revisa tu correo si Supabase requiere confirmación, o inicia sesión.');
         setIsSignUp(false);
       } else {

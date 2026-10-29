@@ -104,6 +104,11 @@ export async function POST(req: Request) {
 
     const generatedData = JSON.parse(rawText);
 
+    await db.user.upsert({
+      where: { id: user.id },
+      update: {},
+      create: { id: user.id, email: user.email! },
+    });
     // Guardar en la base de datos (asegúrate de adaptar esto si usas Prisma estándar o tu cliente personalizado)
     const session = await db.studySession.create({
       data: {

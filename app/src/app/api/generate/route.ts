@@ -7,6 +7,7 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI, Type, Schema } from '@google/genai';
 import { db } from '@/lib/prisma'; // O tu cliente de base de datos actual
+import { createClient } from '@/lib/supabase/server';
 
 // Inicializar el cliente de Gemini
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -52,11 +53,18 @@ const responseSchema: Schema = {
 
 export async function POST(req: Request) {
   try {
-    const { content, sourceType, userId } = await req.json();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!content || !userId) {
+    if (!user) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    const { content, sourceType } = await req.json();
+
+    if (!content) {
       return NextResponse.json(
-        { error: 'Faltan parámetros requeridos (content o userId)' },
+        { error: 'Falta el parámetro requerido (content)' },
         { status: 400 }
       );
     }
@@ -97,9 +105,9 @@ export async function POST(req: Request) {
     const generatedData = JSON.parse(rawText);
 
     // Guardar en la base de datos (asegúrate de adaptar esto si usas Prisma estándar o tu cliente personalizado)
-    const session = await prisma.studySession.create({
+    const session = await db.studySession.create({
       data: {
-        userId,
+        userId: user.id,
         title: generatedData.title,
         sourceType: sourceType || 'text',
         summary: generatedData.summary,

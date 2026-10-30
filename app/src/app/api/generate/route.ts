@@ -51,6 +51,33 @@ const responseSchema: Schema = {
   required: ['title', 'summary', 'studyRoute', 'quizQuestions'],
 };
 
+const MAX_CONTENT_LENGTH = 20000;
+const ALLOWED_SOURCE_TYPES = ['text', 'pdf', 'youtube_url'];
+
+const MAX_ATTEMPTS = 3;
+
+function isOverloaded(err: any) {
+  const msg = String(err?.message ?? '');
+  return (
+    err?.status === 503 ||
+    err?.code === 503 ||
+    msg.includes('503') ||
+    msg.includes('UNAVAILABLE')
+  );
+}
+
+async function generateWithRetry(params: Parameters<typeof ai.models.generateContent>[0]) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await ai.models.generateContent(params);
+    } catch (err) {
+      if (!isOverloaded(err) || attempt === MAX_ATTEMPTS) throw err;
+      // Espera 1 s, luego 2 s antes de volver a intentar
+      await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** (attempt - 1)));
+    }
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const supabase = await createClient();
@@ -60,12 +87,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const { content, sourceType } = await req.json();
+    const body = await req.json();
+
+    const content = typeof body.content === 'string' ? body.content.trim() : '';
+    const sourceType = ALLOWED_SOURCE_TYPES.includes(body.sourceType)
+      ? body.sourceType
+      : 'text';
 
     if (!content) {
       return NextResponse.json(
-        { error: 'Falta el parámetro requerido (content)' },
+        { error: 'El contenido no puede estar vacío' },
         { status: 400 }
+      );
+    }
+
+    if (content.length > MAX_CONTENT_LENGTH) {
+      return NextResponse.json(
+        { error: `El contenido supera el máximo de ${MAX_CONTENT_LENGTH} caracteres` },
+        { status: 413 }
       );
     }
 
@@ -79,7 +118,7 @@ export async function POST(req: Request) {
     // Llamada a la API de Gemini con el modelo flash y esquema forzado
     let response;
     try {
-      response = await ai.models.generateContent({
+      response = await ai.models.generateWithRetry({
         model: 'gemini-3.8-flash',
         contents: `Analiza el siguiente contenido educativo. Genera un título descriptivo, un resumen (overview y keyPoints), una ruta de estudio sugerida en pasos, y un cuestionario interactivo de 3 a 5 preguntas con sus opciones y la respuesta correcta.\n\nContenido:\n${content}`,
         config: {
@@ -88,7 +127,7 @@ export async function POST(req: Request) {
         },
       });
     } catch (apiError: any) {
-      if (apiError.status === 503 || apiError.code === 503) {
+      if (isOverloaded(apiError) {
         return NextResponse.json(
           { error: 'El servicio de IA está experimentando mucha demanda en este momento. Por favor, intenta de nuevo en unos segundos.' },
           { status: 503 }
@@ -114,7 +153,7 @@ export async function POST(req: Request) {
       data: {
         userId: user.id,
         title: generatedData.title,
-        sourceType: sourceType || 'text',
+        sourceType,
         summary: generatedData.summary,
         studyRoute: generatedData.studyRoute,
         quizzes: {

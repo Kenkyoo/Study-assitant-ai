@@ -26,7 +26,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Componente para subir contenido conectado al ID real del usuario */}
-        <FileUploader userId={user.id} />
+        <FileUploader />
       </div>
     </main>
   );

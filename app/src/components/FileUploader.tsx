@@ -5,10 +5,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface FileUploaderProps {
-  userId: string;
-}
-
 export default function FileUploader({ userId }: FileUploaderProps) {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,7 +25,6 @@ export default function FileUploader({ userId }: FileUploaderProps) {
         body: JSON.stringify({
           content,
           sourceType: 'text',
-          userId,
         }),
       });
 

@@ -168,10 +168,10 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, data: session });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error en /api/generate:', error);
     return NextResponse.json(
-      { error: error.message || 'Error interno del servidor' },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

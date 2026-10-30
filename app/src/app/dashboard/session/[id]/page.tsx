@@ -7,9 +7,9 @@ import QuizRunner from '@/components/QuizRunner';
 import { notFound, redirect } from 'next/navigation';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function SessionDetailPage({ params }: PageProps) {
@@ -21,7 +21,7 @@ export default async function SessionDetailPage({ params }: PageProps) {
     redirect('/login');
   }
 
-  const { id } = params;
+  const { id } = await params;
 
   // 2. Consultar la sesión en la base de datos con tu cliente personalizado
   const session = await db.studySession.findUnique({

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { db } from "@/lib/prisma"; // O tu cliente de base de datos actual
 import { createClient } from "@/lib/supabase/server";
-
+import { validateGenerated } from "@/lib/validate-generated";
 // Inicializar el cliente de Gemini
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -52,12 +52,12 @@ const MAX_ATTEMPTS = 3;
 
 function isOverloaded(err: unknown): boolean {
   const e = err as { status?: number; code?: number; message?: string } | null;
-  const msg = String(e?.message ?? '');
+  const msg = String(e?.message ?? "");
   return (
     e?.status === 503 ||
     e?.code === 503 ||
-    msg.includes('503') ||
-    msg.includes('UNAVAILABLE')
+    msg.includes("503") ||
+    msg.includes("UNAVAILABLE")
   );
 }
 
@@ -146,7 +146,13 @@ export async function POST(req: Request) {
       throw new Error("Gemini no devolvió ninguna respuesta.");
     }
 
-    const generatedData = JSON.parse(rawText);
+    const generated = validateGenerated(JSON.parse(rawText));
+    if (!generated) {
+      return NextResponse.json(
+        { error: "La IA devolvió un formato inválido. Inténtalo de nuevo." },
+        { status: 502 },
+      );
+    }
 
     await db.user.upsert({
       where: { id: user.id },
@@ -157,13 +163,13 @@ export async function POST(req: Request) {
     const session = await db.studySession.create({
       data: {
         userId: user.id,
-        title: generatedData.title,
+        title: generated.title,
         sourceType,
-        summary: generatedData.summary,
-        studyRoute: generatedData.studyRoute,
+        summary: generated.summary,
+        studyRoute: generated.studyRoute,
         quizzes: {
           create: {
-            questions: generatedData.quizQuestions,
+            questions: generated.quizQuestions,
           },
         },
       },

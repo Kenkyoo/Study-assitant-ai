@@ -1,9 +1,3 @@
-// Source - https://stackoverflow.com/a/63884537
-// Posted by Chamika Sandamal, modified by community. See post 'Timeline' for change history
-// Retrieved 2026-10-29, License - CC BY-SA 4.0
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { NextResponse } from "next/server";
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { db } from "@/lib/prisma"; // O tu cliente de base de datos actual
@@ -56,13 +50,14 @@ const ALLOWED_SOURCE_TYPES = ["text", "pdf", "youtube_url"];
 
 const MAX_ATTEMPTS = 3;
 
-function isOverloaded(err: any) {
-  const msg = String(err?.message ?? "");
+function isOverloaded(err: unknown): boolean {
+  const e = err as { status?: number; code?: number; message?: string } | null;
+  const msg = String(e?.message ?? '');
   return (
-    err?.status === 503 ||
-    err?.code === 503 ||
-    msg.includes("503") ||
-    msg.includes("UNAVAILABLE")
+    e?.status === 503 ||
+    e?.code === 503 ||
+    msg.includes('503') ||
+    msg.includes('UNAVAILABLE')
   );
 }
 
@@ -134,7 +129,7 @@ export async function POST(req: Request) {
           responseSchema: responseSchema,
         },
       });
-    } catch (apiError: any) {
+    } catch (apiError) {
       if (isOverloaded(apiError)) {
         return NextResponse.json(
           {

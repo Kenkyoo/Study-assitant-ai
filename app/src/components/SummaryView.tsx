@@ -1,7 +1,5 @@
-import { BookOpen, CheckCircle2, Compass } from 'lucide-react';
-
-import { BookOpen, CheckCircle2, Compass } from 'lucide-react';
-import type { StudySummary } from '@/types';
+import { BookOpen, CheckCircle2, Compass } from "lucide-react";
+import type { StudySummary } from "@/types";
 
 interface StudySessionProps {
   session: {
@@ -16,7 +14,7 @@ interface StudySessionProps {
 export default function SummaryView({ session }: StudySessionProps) {
   // Hacemos un casting seguro por si Prisma lo devuelve como JsonValue
   const summary = session.summary as StudySummary | null;
-  const studyRoute = session.studyRoute as string[] | null;;
+  const studyRoute = session.studyRoute as string[] | null;
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -30,7 +28,9 @@ export default function SummaryView({ session }: StudySessionProps) {
             {new Date(session.createdAt).toLocaleDateString()}
           </span>
         </div>
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{session.title}</h1>
+        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+          {session.title}
+        </h1>
       </div>
 
       {/* Resumen General */}

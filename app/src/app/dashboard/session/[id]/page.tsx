@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/prisma';
 import SummaryView from '@/components/SummaryView';
 import QuizRunner from '@/components/QuizRunner';
 import { notFound, redirect } from 'next/navigation';
+import type { QuizQuestion } from '@/types';
 
 interface PageProps {
   params: Promise<{
@@ -48,7 +47,7 @@ export default async function SessionDetailPage({ params }: PageProps) {
         <SummaryView session={session} />
 
         {/* Cuestionario Interactivo */}
-        {quiz && <QuizRunner questions={quiz.questions as any} />}
+        {quiz && <QuizRunner questions={quiz.questions as unknown as QuizQuestion[]} />}
       </div>
     </main>
   );

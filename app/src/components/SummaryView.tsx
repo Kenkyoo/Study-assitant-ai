@@ -1,27 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { BookOpen, CheckCircle2, Compass } from 'lucide-react';
 
-// Definimos la estructura exacta que guardamos de Gemini
-interface SummaryData {
-  overview: string;
-  keyPoints: string[];
-}
+import { BookOpen, CheckCircle2, Compass } from 'lucide-react';
+import type { StudySummary } from '@/types';
 
 interface StudySessionProps {
   session: {
     title: string;
     sourceType: string;
-    summary: any; // O casteamos el tipo de Prisma aquí para evitar conflictos
-    studyRoute: any;
+    summary: unknown;
+    studyRoute: unknown;
     createdAt: string | Date;
   };
 }
 
 export default function SummaryView({ session }: StudySessionProps) {
   // Hacemos un casting seguro por si Prisma lo devuelve como JsonValue
-  const summary = session.summary as SummaryData;
-  const studyRoute = session.studyRoute as string[] | null;
+  const summary = session.summary as StudySummary | null;
+  const studyRoute = session.studyRoute as string[] | null;;
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 p-6 bg-white rounded-2xl shadow-sm border border-gray-100">

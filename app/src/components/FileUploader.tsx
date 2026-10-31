@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 'use client';
 
 import { useState } from 'react';
@@ -36,8 +34,8 @@ export default function FileUploader() {
 
       // Redirigir a la vista detallada de la sesión creada
       router.push(`/dashboard/session/${data.data.id}`);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al generar el contenido con IA');
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 'use client';
 
 import { useState } from 'react';
@@ -40,8 +38,8 @@ export default function LoginPage() {
         router.push('/dashboard');
         router.refresh();
       }
-    } catch (err: any) {
-      setError(err.message || 'Ocurrió un error en la autenticación');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ocurrió un error en la autenticación');
     } finally {
       setLoading(false);
     }

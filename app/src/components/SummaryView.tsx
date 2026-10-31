@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import React from 'react';
 import { BookOpen, CheckCircle2, Compass } from 'lucide-react';
 
 // Definimos la estructura exacta que guardamos de Gemini

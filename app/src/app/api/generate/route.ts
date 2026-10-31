@@ -4,10 +4,10 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { NextResponse } from 'next/server';
-import { GoogleGenAI, Type, Schema } from '@google/genai';
-import { db } from '@/lib/prisma'; // O tu cliente de base de datos actual
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from "next/server";
+import { GoogleGenAI, Type, Schema } from "@google/genai";
+import { db } from "@/lib/prisma"; // O tu cliente de base de datos actual
+import { createClient } from "@/lib/supabase/server";
 
 // Inicializar el cliente de Gemini
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -26,7 +26,7 @@ const responseSchema: Schema = {
           items: { type: Type.STRING },
         },
       },
-      required: ['overview', 'keyPoints'],
+      required: ["overview", "keyPoints"],
     },
     studyRoute: {
       type: Type.ARRAY,
@@ -44,36 +44,40 @@ const responseSchema: Schema = {
           },
           correctAnswer: { type: Type.STRING },
         },
-        required: ['question', 'options', 'correctAnswer'],
+        required: ["question", "options", "correctAnswer"],
       },
     },
   },
-  required: ['title', 'summary', 'studyRoute', 'quizQuestions'],
+  required: ["title", "summary", "studyRoute", "quizQuestions"],
 };
 
 const MAX_CONTENT_LENGTH = 20000;
-const ALLOWED_SOURCE_TYPES = ['text', 'pdf', 'youtube_url'];
+const ALLOWED_SOURCE_TYPES = ["text", "pdf", "youtube_url"];
 
 const MAX_ATTEMPTS = 3;
 
 function isOverloaded(err: any) {
-  const msg = String(err?.message ?? '');
+  const msg = String(err?.message ?? "");
   return (
     err?.status === 503 ||
     err?.code === 503 ||
-    msg.includes('503') ||
-    msg.includes('UNAVAILABLE')
+    msg.includes("503") ||
+    msg.includes("UNAVAILABLE")
   );
 }
 
-async function generateWithRetry(params: Parameters<typeof ai.models.generateContent>[0]) {
+async function generateWithRetry(
+  params: Parameters<typeof ai.models.generateContent>[0],
+) {
   for (let attempt = 1; ; attempt++) {
     try {
       return await ai.models.generateContent(params);
     } catch (err) {
       if (!isOverloaded(err) || attempt === MAX_ATTEMPTS) throw err;
       // Espera 1 s, luego 2 s antes de volver a intentar
-      await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** (attempt - 1)));
+      await new Promise((resolve) =>
+        setTimeout(resolve, 1000 * 2 ** (attempt - 1)),
+      );
     }
   }
 }
@@ -81,64 +85,70 @@ async function generateWithRetry(params: Parameters<typeof ai.models.generateCon
 export async function POST(req: Request) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const body = await req.json();
 
-    const content = typeof body.content === 'string' ? body.content.trim() : '';
+    const content = typeof body.content === "string" ? body.content.trim() : "";
     const sourceType = ALLOWED_SOURCE_TYPES.includes(body.sourceType)
       ? body.sourceType
-      : 'text';
+      : "text";
 
     if (!content) {
       return NextResponse.json(
-        { error: 'El contenido no puede estar vacío' },
-        { status: 400 }
+        { error: "El contenido no puede estar vacío" },
+        { status: 400 },
       );
     }
 
     if (content.length > MAX_CONTENT_LENGTH) {
       return NextResponse.json(
-        { error: `El contenido supera el máximo de ${MAX_CONTENT_LENGTH} caracteres` },
-        { status: 413 }
+        {
+          error: `El contenido supera el máximo de ${MAX_CONTENT_LENGTH} caracteres`,
+        },
+        { status: 413 },
       );
     }
 
     if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
-        { error: 'GEMINI_API_KEY no está configurada en el servidor' },
-        { status: 500 }
+        { error: "GEMINI_API_KEY no está configurada en el servidor" },
+        { status: 500 },
       );
     }
 
     // Llamada a la API de Gemini con el modelo flash y esquema forzado
     let response;
     try {
-      response = await ai.models.generateWithRetry({
-        model: 'gemini-3.8-flash',
+      response = await generateWithRetry({
+        model: "gemini-3.8-flash",
         contents: `Analiza el siguiente contenido educativo. Genera un título descriptivo, un resumen (overview y keyPoints), una ruta de estudio sugerida en pasos, y un cuestionario interactivo de 3 a 5 preguntas con sus opciones y la respuesta correcta.\n\nContenido:\n${content}`,
         config: {
-          responseMimeType: 'application/json',
+          responseMimeType: "application/json",
           responseSchema: responseSchema,
         },
       });
     } catch (apiError: any) {
-      if (isOverloaded(apiError) {
+      if (isOverloaded(apiError)) {
         return NextResponse.json(
-          { error: 'El servicio de IA está experimentando mucha demanda en este momento. Por favor, intenta de nuevo en unos segundos.' },
-          { status: 503 }
+          {
+            error:
+              "El servicio de IA está experimentando mucha demanda en este momento. Por favor, intenta de nuevo en unos segundos.",
+          },
+          { status: 503 },
         );
       }
       throw apiError;
     }
-
     const rawText = response.text;
     if (!rawText) {
-      throw new Error('Gemini no devolvió ninguna respuesta.');
+      throw new Error("Gemini no devolvió ninguna respuesta.");
     }
 
     const generatedData = JSON.parse(rawText);
@@ -169,10 +179,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, data: session });
   } catch (error) {
-    console.error('Error en /api/generate:', error);
+    console.error("Error en /api/generate:", error);
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
+      { error: "Error interno del servidor" },
+      { status: 500 },
     );
   }
 }

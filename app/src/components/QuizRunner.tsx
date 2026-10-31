@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle2, XCircle, HelpCircle, RotateCcw } from 'lucide-react';
+import { HelpCircle, RotateCcw } from 'lucide-react';
 
 interface Question {
   question: string;

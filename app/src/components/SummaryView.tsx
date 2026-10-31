@@ -1,5 +1,6 @@
 import { BookOpen, CheckCircle2, Compass } from "lucide-react";
 import type { StudySummary } from "@/types";
+import Link from "next/link";
 
 interface StudySessionProps {
   session: {
@@ -19,6 +20,12 @@ export default function SummaryView({ session }: StudySessionProps) {
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
       {/* Cabecera de la Sesión */}
+      <Link
+        href="/dashboard/history"
+        className="text-sm text-indigo-600 hover:underline font-medium"
+      >
+        ← Volver al historial
+      </Link>
       <div className="border-b border-gray-100 pb-6">
         <div className="flex items-center justify-between mb-3">
           <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-indigo-50 text-indigo-600 rounded-full">

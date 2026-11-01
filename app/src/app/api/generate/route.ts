@@ -3,6 +3,8 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { db } from "@/lib/prisma"; // O tu cliente de base de datos actual
 import { createClient } from "@/lib/supabase/server";
 import { validateGenerated } from "@/lib/validate-generated";
+import { checkGenerationLimit } from '@/lib/rate-limit';
+
 // Inicializar el cliente de Gemini
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -58,6 +60,14 @@ function isOverloaded(err: unknown): boolean {
     e?.code === 503 ||
     msg.includes("503") ||
     msg.includes("UNAVAILABLE")
+  );
+}
+
+const limit = await checkGenerationLimit(user.id);
+if (!limit.allowed) {
+  return NextResponse.json(
+    { error: limit.message },
+    { status: 429, headers: { 'Retry-After': String(limit.retryAfterSeconds) } }
   );
 }
 

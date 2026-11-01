@@ -31,7 +31,7 @@ export default async function DashboardPage() {
             </h1>
             <p className="text-sm text-gray-500">{user.email}</p>
           </div>
-          <form action="/auth/signout" method="post">
+          <form action="/signout" method="post">
             <button className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors">
               Cerrar sesión
             </button>

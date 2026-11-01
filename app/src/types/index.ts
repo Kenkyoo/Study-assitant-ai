@@ -1,10 +1,10 @@
-export interface StudySummary {
+export type StudySummary = {
   overview: string;
   keyPoints: string[];
-}
+};
 
-export interface QuizQuestion {
+export type QuizQuestion = {
   question: string;
   options: string[];
   correctAnswer: string;
-}
+};

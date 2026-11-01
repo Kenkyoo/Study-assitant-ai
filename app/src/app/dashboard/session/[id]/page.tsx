@@ -47,7 +47,13 @@ export default async function SessionDetailPage({ params }: PageProps) {
         <SummaryView session={session} />
 
         {/* Cuestionario Interactivo */}
-        {quiz && <QuizRunner questions={quiz.questions as unknown as QuizQuestion[]} />}
+        {quiz && (
+          <QuizRunner
+            quizId={quiz.id}
+            questions={quiz.questions as unknown as QuizQuestion[]}
+            lastScore={quiz.score}
+          />
+        )}
       </div>
     </main>
   );

@@ -3,6 +3,14 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/prisma";
 import SessionList from "@/components/SessionList";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default async function HistoryPage() {
   const supabase = await createClient();
@@ -22,23 +30,27 @@ export default async function HistoryPage() {
   });
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Historial de sesiones
-          </h1>
-          <Link
-            href="/dashboard"
-            className="px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg font-medium transition-colors"
-          >
-            Volver al panel
-          </Link>
-        </div>
+    <main className="min-h-screen bg-muted/40 px-4 py-12">
+      <div className="mx-auto max-w-4xl space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Historial de sesiones</CardTitle>
+            <CardAction>
+              <Link
+                href="/dashboard"
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Volver al panel
+              </Link>
+            </CardAction>
+          </CardHeader>
+        </Card>
 
-        <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <SessionList sessions={sessions} />
-        </section>
+        <Card>
+          <CardContent>
+            <SessionList sessions={sessions} />
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

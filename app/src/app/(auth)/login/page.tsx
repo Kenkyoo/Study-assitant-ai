@@ -1,15 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
-import { Sparkles } from 'lucide-react';
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -18,15 +31,16 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setMessage(null);
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+        const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        alert('¡Registro exitoso! Revisa tu correo si Supabase requiere confirmación, o inicia sesión.');
+
+        setMessage(
+          "¡Registro exitoso! Revisa tu correo si hace falta confirmarlo, o inicia sesión.",
+        );
         setIsSignUp(false);
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -35,76 +49,91 @@ export default function LoginPage() {
         });
         if (error) throw error;
 
-        router.push('/dashboard');
+        router.push("/dashboard");
         router.refresh();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ocurrió un error en la autenticación');
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Ocurrió un error en la autenticación",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-6">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mx-auto">
-            <Sparkles className="w-6 h-6" />
+    <main className="min-h-screen flex items-center justify-center bg-muted/40 px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Sparkles className="size-6" />
           </div>
-          <h1 className="text-2xl font-extrabold text-gray-900">
-            {isSignUp ? 'Crear una cuenta' : 'Iniciar Sesión'}
-          </h1>
-          <p className="text-sm text-gray-500">
-            Asistente de Aprendizaje y Resúmenes con IA
-          </p>
-        </div>
+          <CardTitle className="text-2xl">
+            {isSignUp ? "Crear una cuenta" : "Iniciar sesión"}
+          </CardTitle>
+          <CardDescription>
+            Asistente de aprendizaje y resúmenes con IA
+          </CardDescription>
+        </CardHeader>
 
-        <form onSubmit={handleAuth} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-gray-800 text-sm"
-              placeholder="tu@correo.com"
-            />
-          </div>
+        <CardContent>
+          <form onSubmit={handleAuth} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Correo electrónico</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="tu@correo.com"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-gray-800 text-sm"
-              placeholder="••••••••"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+              />
+            </div>
 
-          {error && <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</p>}
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            {message && (
+              <Alert>
+                <AlertDescription>{message}</AlertDescription>
+              </Alert>
+            )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors text-sm shadow-sm disabled:opacity-50"
-          >
-            {loading ? 'Procesando...' : isSignUp ? 'Registrarse' : 'Entrar'}
-          </button>
-        </form>
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? "Procesando..." : isSignUp ? "Registrarse" : "Entrar"}
+            </Button>
+          </form>
+        </CardContent>
 
-        <div className="text-center pt-2">
-          <button
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm text-indigo-600 hover:underline font-medium"
-          >
-            {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
-          </button>
-        </div>
-      </div>
-    </div>
+        <CardFooter className="justify-center">
+          <Button variant="link" onClick={() => setIsSignUp(!isSignUp)}>
+            {isSignUp
+              ? "¿Ya tienes cuenta? Inicia sesión"
+              : "¿No tienes cuenta? Regístrate"}
+          </Button>
+        </CardFooter>
+      </Card>
+    </main>
   );
 }

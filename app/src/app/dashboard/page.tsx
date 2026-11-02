@@ -1,9 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/prisma";
-import { redirect } from "next/navigation";
 import FileUploader from "@/components/FileUploader";
 import SessionList from "@/components/SessionList";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const {
@@ -18,42 +28,44 @@ export default async function DashboardPage() {
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     take: 5,
-    select: { id: true, title: true, sourceType: true, createdAt: true },
+    select: { id: true, title: true, createdAt: true },
   });
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Panel de Control
-            </h1>
-            <p className="text-sm text-gray-500">{user.email}</p>
-          </div>
-          <form action="/signout" method="post">
-            <button className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors">
-              Cerrar sesión
-            </button>
-          </form>
-        </div>
+    <main className="min-h-screen bg-muted/40 px-4 py-12">
+      <div className="mx-auto max-w-4xl space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Panel de control</CardTitle>
+            <CardDescription>{user.email}</CardDescription>
+            <CardAction>
+              <form action="/signout" method="post">
+                <Button type="submit" variant="destructive">
+                  Cerrar sesión
+                </Button>
+              </form>
+            </CardAction>
+          </CardHeader>
+        </Card>
 
         <FileUploader />
 
-        <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">
-              Sesiones recientes
-            </h2>
-            <Link
-              href="/dashboard/history"
-              className="text-sm text-indigo-600 hover:underline font-medium"
-            >
-              Ver todo
-            </Link>
-          </div>
-          <SessionList sessions={sessions} />
-        </section>
+        <Card>
+          <CardHeader>
+            <CardTitle>Sesiones recientes</CardTitle>
+            <CardAction>
+              <Link
+                href="/dashboard/history"
+                className={buttonVariants({ variant: "link", size: "sm" })}
+              >
+                Ver todo
+              </Link>
+            </CardAction>
+          </CardHeader>
+          <CardContent>
+            <SessionList sessions={sessions} />
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

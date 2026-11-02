@@ -13,7 +13,7 @@ export default function SessionList({
 }) {
   if (sessions.length === 0) {
     return (
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-muted-foreground">
         Todavía no has creado ninguna sesión. Pega un texto en el panel para
         empezar.
       </p>
@@ -21,17 +21,15 @@ export default function SessionList({
   }
 
   return (
-    <ul className="divide-y divide-gray-100">
+    <ul className="divide-y">
       {sessions.map((s) => (
         <li key={s.id}>
           <Link
             href={`/dashboard/session/${s.id}`}
-            className="flex items-center justify-between gap-4 py-3 hover:bg-gray-50 -mx-2 px-2 rounded-lg transition-colors"
+            className="-mx-2 flex items-center justify-between gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-muted"
           >
-            <span className="font-medium text-gray-800 truncate">
-              {s.title}
-            </span>
-            <span className="text-xs text-gray-400 shrink-0">
+            <span className="truncate font-medium">{s.title}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">
               {s.createdAt.toLocaleDateString("es-AR")}
             </span>
           </Link>

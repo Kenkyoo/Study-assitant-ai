@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 import { HelpCircle, RotateCcw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface Question {
   question: string;
@@ -33,9 +45,11 @@ export default function QuizRunner({
 
   if (!questions || questions.length === 0) {
     return (
-      <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100 text-center text-gray-500">
-        No hay preguntas de cuestionario disponibles para esta sesión.
-      </div>
+      <Card>
+        <CardContent className="text-center text-muted-foreground">
+          No hay preguntas de cuestionario disponibles para esta sesión.
+        </CardContent>
+      </Card>
     );
   }
 
@@ -43,10 +57,7 @@ export default function QuizRunner({
 
   const handleSelectOption = (option: string) => {
     if (showResults) return;
-    setSelectedAnswers({
-      ...selectedAnswers,
-      [currentIndex]: option,
-    });
+    setSelectedAnswers({ ...selectedAnswers, [currentIndex]: option });
   };
 
   const submitQuiz = async () => {
@@ -86,9 +97,7 @@ export default function QuizRunner({
   };
 
   const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
+    if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
   };
 
   const restartQuiz = () => {
@@ -104,119 +113,107 @@ export default function QuizRunner({
     const percentage = Math.round((score / total) * 100);
 
     return (
-      <div className="w-full max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-sm border border-gray-100 text-center space-y-6">
-        <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
-          {percentage}%
-        </div>
-        <h2 className="text-2xl font-extrabold text-gray-900">
-          ¡Cuestionario Completado!
-        </h2>
-        <p className="text-gray-600">
-          Has acertado{" "}
-          <span className="font-semibold text-indigo-600">{score}</span> de{" "}
-          <span className="font-semibold">{total}</span> preguntas.
-        </p>
-
-        <div className="pt-4">
-          <button
-            onClick={restartQuiz}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors shadow-sm"
-          >
-            <RotateCcw className="w-4 h-4" />
+      <Card className="mx-auto w-full max-w-4xl text-center">
+        <CardContent className="space-y-6 py-4">
+          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
+            {percentage}%
+          </div>
+          <h2 className="text-2xl font-extrabold">¡Cuestionario completado!</h2>
+          <p className="text-muted-foreground">
+            Has acertado{" "}
+            <span className="font-semibold text-primary">{score}</span> de{" "}
+            <span className="font-semibold">{total}</span> preguntas.
+          </p>
+          <Button size="lg" onClick={restartQuiz}>
+            <RotateCcw />
             Volver a intentar
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-2xl shadow-sm border border-gray-100 space-y-6">
-      {/* Cabecera del Quiz */}
-      <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-        <div>
-          <div className="flex items-center gap-2 text-indigo-600 font-semibold">
-            <HelpCircle className="w-5 h-5" />
-            <h2 className="text-xl">Cuestionario de Autoevaluación</h2>
-          </div>
-          {lastScore !== null && (
-            <p className="text-xs text-gray-400 mt-1">
-              Último resultado: {lastScore} de {questions.length}
-            </p>
-          )}
-        </div>
-        <span className="text-sm font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
-          Pregunta {currentIndex + 1} de {questions.length}
-        </span>
-      </div>
+    <Card className="mx-auto w-full max-w-4xl">
+      <CardHeader className="border-b">
+        <CardTitle className="flex items-center gap-2 text-xl text-primary">
+          <HelpCircle className="size-5" />
+          Cuestionario de autoevaluación
+        </CardTitle>
+        {lastScore !== null && (
+          <CardDescription>
+            Último resultado: {lastScore} de {questions.length}
+          </CardDescription>
+        )}
+        <CardAction>
+          <Badge variant="secondary">
+            Pregunta {currentIndex + 1} de {questions.length}
+          </Badge>
+        </CardAction>
+      </CardHeader>
 
-      {/* Pregunta */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-bold text-gray-900 leading-snug">
+      <CardContent className="space-y-4">
+        <h3 className="text-lg font-bold leading-snug">
           {currentQuestion.question}
         </h3>
 
-        {/* Opciones */}
-        <div className="space-y-3">
+        <div className="space-y-3" role="radiogroup">
           {currentQuestion.options.map((option, idx) => {
             const isSelected = selectedAnswers[currentIndex] === option;
             return (
               <button
                 key={idx}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
                 onClick={() => handleSelectOption(option)}
-                className={`w-full text-left p-4 rounded-xl border transition-all flex items-center justify-between ${
+                className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${
                   isSelected
-                    ? "border-indigo-600 bg-indigo-50/50 text-indigo-900 font-medium"
-                    : "border-gray-200 bg-white hover:border-gray-300 text-gray-700"
+                    ? "border-primary bg-primary/5 font-medium"
+                    : "bg-card hover:bg-muted"
                 }`}
               >
                 <span>{option}</span>
                 <span
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                    isSelected
-                      ? "border-indigo-600 bg-indigo-600 text-white"
-                      : "border-gray-300"
+                  className={`flex size-5 shrink-0 items-center justify-center rounded-full border ${
+                    isSelected ? "border-primary bg-primary" : ""
                   }`}
                 >
                   {isSelected && (
-                    <span className="w-2 h-2 rounded-full bg-white" />
+                    <span className="size-2 rounded-full bg-primary-foreground" />
                   )}
                 </span>
               </button>
             );
           })}
         </div>
-      </div>
 
-      {/* Error al guardar */}
-      {submitError && (
-        <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-          {submitError}
-        </p>
-      )}
+        {submitError && (
+          <Alert variant="destructive">
+            <AlertDescription>{submitError}</AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
 
-      {/* Botones de Navegación */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <button
+      <CardFooter className="justify-between border-t">
+        <Button
+          variant="ghost"
           onClick={handlePrev}
           disabled={currentIndex === 0}
-          className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
         >
           Anterior
-        </button>
-
-        <button
+        </Button>
+        <Button
           onClick={handleNext}
           disabled={!selectedAnswers[currentIndex] || submitting}
-          className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm disabled:opacity-50"
         >
           {submitting
             ? "Guardando..."
             : currentIndex === questions.length - 1
-              ? "Finalizar Quiz"
+              ? "Finalizar quiz"
               : "Siguiente"}
-        </button>
-      </div>
-    </div>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

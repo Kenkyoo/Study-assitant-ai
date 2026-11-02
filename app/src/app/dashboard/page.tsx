@@ -4,12 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/prisma";
 import FileUploader from "@/components/FileUploader";
 import SessionList from "@/components/SessionList";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -32,22 +31,8 @@ export default async function DashboardPage() {
   });
 
   return (
-    <main className="min-h-screen bg-muted/40 px-4 py-12">
+    <main className="px-4 py-12">
       <div className="mx-auto max-w-4xl space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Panel de control</CardTitle>
-            <CardDescription>{user.email}</CardDescription>
-            <CardAction>
-              <form action="/signout" method="post">
-                <Button type="submit" variant="destructive">
-                  Cerrar sesión
-                </Button>
-              </form>
-            </CardAction>
-          </CardHeader>
-        </Card>
-
         <FileUploader />
 
         <Card>

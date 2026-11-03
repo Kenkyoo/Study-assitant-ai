@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/prisma";
 import type { QuizQuestion } from "@/types";
+import { parseAnswers, scoreQuiz } from "@/lib/score-quiz";
 
 export async function POST(
   req: Request,
@@ -18,18 +19,6 @@ export async function POST(
 
   const { id } = await params;
   const body = await req.json().catch(() => null);
-  const answers: unknown = body?.answers;
-
-  if (
-    !Array.isArray(answers) ||
-    !answers.every((a) => a === null || typeof a === "string")
-  ) {
-    return NextResponse.json(
-      { error: "Respuestas inválidas" },
-      { status: 400 },
-    );
-  }
-
   // Solo encuentra el quiz si la sesión de estudio pertenece al usuario autenticado
   const quiz = await db.quiz.findFirst({
     where: { id, studySession: { userId: user.id } },
@@ -43,6 +32,15 @@ export async function POST(
   }
 
   const questions = quiz.questions as unknown as QuizQuestion[];
+  const answers = parseAnswers(body?.answers, questions.length);
+  if (!answers) {
+    return NextResponse.json(
+      { error: "Respuestas inválidas" },
+      { status: 400 },
+    );
+  }
+
+  const score = scoreQuiz(questions, answers);
 
   if (answers.length !== questions.length) {
     return NextResponse.json(
@@ -50,11 +48,6 @@ export async function POST(
       { status: 400 },
     );
   }
-
-  const score = questions.reduce(
-    (total, q, i) => total + (answers[i] === q.correctAnswer ? 1 : 0),
-    0,
-  );
 
   await db.quiz.update({ where: { id: quiz.id }, data: { score } });
 
